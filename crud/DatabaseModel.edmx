@@ -5,52 +5,110 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="UserInfoModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="department">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" Nullable="false" />
+          <Property Name="dname" Type="varchar" MaxLength="255" Nullable="false" />
+        </EntityType>
         <EntityType Name="UserInfo">
           <Key>
             <PropertyRef Name="id" />
           </Key>
           <Property Name="id" Type="int" Nullable="false" />
-          <Property Name="email" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="phone" Type="varchar" MaxLength="50" />
-          <Property Name="name" Type="varchar" MaxLength="50" />
-          <Property Name="role" Type="int" />
-          <Property Name="is_delete" Type="varchar" MaxLength="50" />
+          <Property Name="name" Type="varchar" MaxLength="255" />
+          <Property Name="email" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="phone" Type="varchar" MaxLength="255" />
+          <Property Name="is_delete" Type="varchar" MaxLength="10" />
+          <Property Name="dept_id" Type="int" Nullable="false" />
         </EntityType>
+        <Association Name="FK__UserInfo__dept_i__182C9B23">
+          <End Role="department" Type="Self.department" Multiplicity="1" />
+          <End Role="UserInfo" Type="Self.UserInfo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="department">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="UserInfo">
+              <PropertyRef Name="dept_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="UserInfoModelStoreContainer">
+          <EntitySet Name="department" EntityType="Self.department" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserInfo" EntityType="Self.UserInfo" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__UserInfo__dept_i__182C9B23" Association="Self.FK__UserInfo__dept_i__182C9B23">
+            <End Role="department" EntitySet="department" />
+            <End Role="UserInfo" EntitySet="UserInfo" />
+          </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="UserInfoModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="CrudOperationsEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="departments" EntityType="UserInfoModel.department" />
           <EntitySet Name="UserInfoes" EntityType="UserInfoModel.UserInfo" />
+          <AssociationSet Name="FK__UserInfo__dept_i__182C9B23" Association="UserInfoModel.FK__UserInfo__dept_i__182C9B23">
+            <End Role="department" EntitySet="departments" />
+            <End Role="UserInfo" EntitySet="UserInfoes" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="department">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" />
+          <Property Name="dname" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="UserInfoes" Relationship="UserInfoModel.FK__UserInfo__dept_i__182C9B23" FromRole="department" ToRole="UserInfo" />
+        </EntityType>
         <EntityType Name="UserInfo">
           <Key>
             <PropertyRef Name="id" />
           </Key>
           <Property Name="id" Type="Int32" Nullable="false" />
-          <Property Name="email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="phone" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="role" Type="Int32" />
-          <Property Name="is_delete" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="email" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="phone" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="is_delete" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="dept_id" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="department" Relationship="UserInfoModel.FK__UserInfo__dept_i__182C9B23" FromRole="UserInfo" ToRole="department" />
         </EntityType>
+        <Association Name="FK__UserInfo__dept_i__182C9B23">
+          <End Type="UserInfoModel.department" Role="department" Multiplicity="1" />
+          <End Type="UserInfoModel.UserInfo" Role="UserInfo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="department">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="UserInfo">
+              <PropertyRef Name="dept_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="UserInfoModelStoreContainer" CdmEntityContainer="CrudOperationsEntities">
+          <EntitySetMapping Name="departments">
+            <EntityTypeMapping TypeName="UserInfoModel.department">
+              <MappingFragment StoreEntitySet="department">
+                <ScalarProperty Name="dname" ColumnName="dname" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="UserInfoes">
             <EntityTypeMapping TypeName="UserInfoModel.UserInfo">
               <MappingFragment StoreEntitySet="UserInfo">
+                <ScalarProperty Name="dept_id" ColumnName="dept_id" />
                 <ScalarProperty Name="is_delete" ColumnName="is_delete" />
-                <ScalarProperty Name="role" ColumnName="role" />
-                <ScalarProperty Name="name" ColumnName="name" />
                 <ScalarProperty Name="phone" ColumnName="phone" />
                 <ScalarProperty Name="email" ColumnName="email" />
+                <ScalarProperty Name="name" ColumnName="name" />
                 <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>

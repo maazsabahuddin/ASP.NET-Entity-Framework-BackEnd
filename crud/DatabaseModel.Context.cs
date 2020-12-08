@@ -25,6 +25,7 @@ namespace crud
             throw new UnintentionalCodeFirstException();
         }
     
+        public virtual DbSet<department> departments { get; set; }
         public virtual DbSet<UserInfo> UserInfoes { get; set; }
     }
 }

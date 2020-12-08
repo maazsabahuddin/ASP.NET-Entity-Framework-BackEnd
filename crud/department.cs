@@ -12,15 +12,18 @@ namespace crud
     using System;
     using System.Collections.Generic;
     
-    public partial class UserInfo
+    public partial class department
     {
-        public int id { get; set; }
-        public string name { get; set; }
-        public string email { get; set; }
-        public string phone { get; set; }
-        public string is_delete { get; set; }
-        public int dept_id { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public department()
+        {
+            this.UserInfoes = new HashSet<UserInfo>();
+        }
     
-        public virtual department department { get; set; }
+        public int id { get; set; }
+        public string dname { get; set; }
+    
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserInfo> UserInfoes { get; set; }
     }
 }

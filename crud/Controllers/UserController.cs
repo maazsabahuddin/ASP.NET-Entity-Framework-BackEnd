@@ -11,6 +11,8 @@ using System.Web.Http.Description;
 using System.Web;
 using System.Threading.Tasks;
 using System.Data.Entity.Validation;
+using System.Data.Entity;
+using System.Data.Entity.SqlServer;
 
 namespace crud.Controllers
 {
@@ -19,19 +21,64 @@ namespace crud.Controllers
 
         private CrudOperationsEntities db = new CrudOperationsEntities();
 
-        public IEnumerable<UserInfo> Get()
+        [Route("api/users")]
+        public List<DtoResponseModel> Get()
         {
-            //return db.UserInfoes;
-            using (CrudOperationsEntities dbcontext = new CrudOperationsEntities())
-            {
-                return dbcontext.UserInfoes.ToList();
-            }
+            //try
+            //{
+                using (CrudOperationsEntities dbcontext = new CrudOperationsEntities())
+                {
+                   var query = from e in dbcontext.UserInfoes
+                                 join d in dbcontext.departments on e.dept_id equals d.id
+                                 where e.is_delete == "false"
+                                 orderby e.name ascending
+                                 select new DtoResponseModel()
+                                 {
+                                     emp_id = e.id,
+                                     emp_name = e.name,
+                                     emp_email = e.email,
+                                     emp_phone = e.phone,
+                                     dname = d.dname
+                                 };
+
+                    return query.ToList();
+                
+                }
+            //}
+            //catch (Exception e)
+            //{
+            //    return ;
+            //}
         }
 
-        public UserInfo GetUser(long id)
+        [Route("api/user")]
+        public List<UserModel> GetUser(long id)
         {
-            var result = db.UserInfoes.FirstOrDefault((p) => p.id == id);
-            return result;
+            using (CrudOperationsEntities dbcontext = new CrudOperationsEntities())
+            {
+                //var result = dbcontext.UserInfoes.FirstOrDefault((p) => p.id == id);
+                var query = dbcontext.UserInfoes.Where((x) => x.id == id)
+                    .Select(x => new UserModel()
+                    {
+                        id = x.id,
+                        name = x.name,
+                        email = x.email,
+                        phone = x.phone
+                    });
+                return query.ToList();
+
+                //try
+                //{
+                //    var query = from e in db.UserInfoes
+                //                where e.dept_id == id
+                //                select e;
+                //    return query;
+                //}
+                //catch(Exception e)
+                //{
+                //    return Enumerable.Empty<UserInfo>();
+                //}
+            }
         }
 
         [Route("api/delete/user")]
@@ -65,8 +112,9 @@ namespace crud.Controllers
                 return Ok(200);
             }
             catch (Exception e)
+
             {
-                Console.Write(e.ToString());
+                System.Diagnostics.Debug.WriteLine(e.ToString());
                 return Ok(400);
             }
         }
@@ -105,39 +153,126 @@ namespace crud.Controllers
             }
         }
 
-        //[Route("api/delete/user")]
-        //[ResponseType(typeof(UserInfo))]
-        //public async Task<IHttpActionResult> delete_user(UserInfo user)
+        [Route("api/numberOfEmployees")]
+        public List<DTOGroup> getEmployeeByDept()
+        {
+            using (CrudOperationsEntities db = new CrudOperationsEntities())
+            {
+                var query1 = db.UserInfoes.GroupBy((p) => p.dept_id).
+                    Select(g => new DTOGroup() { noOfEmployees = g.Key, dept_id = g.Count() });
+
+                var query = from p in db.UserInfoes
+                            group p by p.dept_id into g
+                            select new 
+                            {
+                                noOfEmployees = g.Key,
+                                count = g.Count()
+                            };
+
+                return query1.ToList();
+            }
+        }
+
+        //[Route("api/getEmpByDept/{id}")]
+        //public List<UserInfo> getEmp(int id)
         //{
-        //    try
+        //    using (CrudOperationsEntities db = new CrudOperationsEntities())
         //    {
-        //        var user_obj = db.UserInfoes
-        //            .Where(s => s.id == user.id).FirstOrDefault<UserInfo>();
-        //        //var obj = db.UserInfoes.First<UserInfo>();
-        //        //db.UserInfoes.Remove(user_obj);
-        //        //Console.Write(user_obj);
-        //        user_obj.is_delete = "true";
-        //        db.SaveChanges();
-        //        return Ok(200);
-        //    }
-        //    catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
-        //    {
-        //        Exception raise = dbEx;
-        //        foreach (var validationErrors in dbEx.EntityValidationErrors)
+        //        var data = new Dictionary<string, object>();
+        //        try
         //        {
-        //            foreach (var validationError in validationErrors.ValidationErrors)
-        //            {
-        //                string message = string.Format("{0}:{1}",
-        //                    validationErrors.Entry.Entity.ToString(),
-        //                    validationError.ErrorMessage);
-        //                // raise a new exception nesting  
-        //                // the current instance as InnerException  
-        //                raise = new InvalidOperationException(message, raise);
-        //            }
+        //            //var query = db.UserInfoes
+        //            //    .Where((s) => s.dept_id == id)
+        //            //   .FirstOrDefault<UserInfo>();
+
+        //            var query = from e in db.UserInfoes
+        //                        where e.dept_id == id
+        //                        select e;
+        //            var emp = query.FirstOrDefault<UserInfo>();
+
+        //            return new List<UserInfo>();
         //        }
-        //        throw raise;
+        //        catch (Exception e)
+        //        {
+        //            return new List<UserInfo>();
+        //        }
         //    }
         //}
+
+        [Route("api/getEmpByDept/{id}")]
+        public List<UserModel> getEmpByDept(long id)
+        {
+            try
+            {
+                //var query_syntax = (from e in db.UserInfoes
+                //                    where e.dept_id == id
+                //                    select new UserModel()
+                //                    {
+                //                        name = e.name,
+                //                        email = e.email,
+                //                        phone = e.phone,
+                //                        id = e.id,
+                //                    }).ToList();
+
+                //if (query_syntax == null || !query_syntax.Any())
+                //{
+                //    throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+                //}
+
+
+                var query_method_syntax = db.UserInfoes.Where(t => t.dept_id == id).
+                    Select(g => new UserModel() { id = g.id, name = g.name, email = g.email, phone = g.phone }).ToList();
+
+                if (query_method_syntax == null || !query_method_syntax.Any())
+                {
+                    throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+                }
+
+                return query_method_syntax;
+            }
+            catch(Exception e)
+            {
+                return new List<UserModel>();
+            }
+        }
+
+        [Route("api/getEmpByName/{name}")]
+        public List<UserModel> getEmpByName(string name)
+        {
+            try
+            {
+                //var query_syntax = (from e in db.UserInfoes
+                //                    where e.name.Contains(name)
+                //                    //where SqlFunctions.PatIndex("%{%}%", name) > 0
+                //                    select new UserModel()
+                //                    {
+                //                        name = e.name,
+                //                        email = e.email,
+                //                        phone = e.phone,
+                //                        id = e.id,
+                //                    }).ToList();
+
+                //if (query_syntax == null || !query_syntax.Any())
+                //{
+                //    throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+                //}
+
+
+                var query_method_syntax = db.UserInfoes.Where(t => t.name.Contains(name)).
+                    Select(g => new UserModel() { id = g.id, name = g.name, email = g.email, phone = g.phone }).ToList();
+
+                if (query_method_syntax == null || !query_method_syntax.Any())
+                {
+                    throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+                }
+
+                return query_method_syntax;
+            }
+            catch (Exception e)
+            {
+                return new List<UserModel>();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
